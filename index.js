@@ -1,10 +1,9 @@
 const express = require('express')
 const cors = require('cors')
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
 const port = process.env.PORT || 3000
 
-//  middleware
 app.use(cors())
 app.use(express.json())
 
@@ -17,7 +16,6 @@ app.get('/', (req, res) => {
 
 const uri = "mongodb+srv://smartDB:BcPy1TkSmRbVH5DK@cluster0.jwgya6a.mongodb.net/?appName=Cluster0";
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -33,6 +31,18 @@ async function run() {
     const db = client.db('smart_db');
     const productsCollection = db.collection('products');
 
+    app.get('/products', async(req, res) => {
+      const cursor = productsCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    app.get('/products/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = {_id : new ObjectId(id)};
+      const result = await productsCollection.findOne(query);
+      res.send(result);
+    });
 
     app.post('/products', async(req, res) => {
       const newProduct = req.body;
@@ -40,6 +50,12 @@ async function run() {
       res.send(result);
     })
 
+    app.delete('/products/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = {_id : new ObjectId(id)};
+      const result = await productsCollection.deleteOne(query);
+      res.send(result);
+    });
 
 
 
